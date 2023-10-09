@@ -42,9 +42,6 @@ public class Schedule {
       System.out.println("Doctor has an appointment at that time");
       return false;
     }
-    if (!appointmentAtLeastOneWeekApart(appointment.getPersonId(), dateTime)) {
-      return false;
-    }
     return true;
   }
 
@@ -55,7 +52,7 @@ public class Schedule {
       return true;
     }
     for (LocalDate date : existingAppointments) {
-      if (ChronoUnit.DAYS.between(date, dateTime) < 7) {
+      if (Math.abs(ChronoUnit.DAYS.between(date, dateTime)) < 7) {
         return false;
       }
     }
@@ -76,7 +73,16 @@ public class Schedule {
       for (String s : appointmentRequest.getPreferredDays()) {
         appointment.setDoctorId(i);
         ZonedDateTime dateTime = ZonedDateTime.parse(s);
-        for (int j = 8; j < 17; j++) {
+        if (!appointmentAtLeastOneWeekApart(appointment.getPersonId(), dateTime)) {
+          continue;
+        }
+        int start = 8;
+        int end = 17;
+        if (appointment.isNewPatientAppointment()) {
+          start = 15;
+          end = 17;
+        }
+        for (int j = start; j < end; j++) {
           ZonedDateTime currDateTime = dateTime.with(LocalTime.of(j, 0));
           if (isAppointmentValid(appointment, currDateTime)) {
             appointment.setAppointmentTime(currDateTime.toString());
